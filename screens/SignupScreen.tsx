@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import FormButton from '../components/FormButton';
-import FormInput from '../components/FormInput';
+import { StyleSheet, Text, View } from 'react-native';
 
 const SignupScreen = ({ navigation }) => {
   const [email, setEmail] = useState();
@@ -12,7 +10,7 @@ const SignupScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Test rejestracja</Text>
+      <Text style={styles.text}>Test rejestracja Piotrek</Text>
     </View>
   );
 };
@@ -49,7 +47,6 @@ const styles = StyleSheet.create({
   color_textPrivate: {
     fontSize: 13,
     fontWeight: '400',
-    fontFamily: 'Lato-Regular',
     color: 'grey',
   },
 });
