@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
-import { Input, Button, Text, Icon } from 'react-native-elements';
+import { ScrollView, StyleSheet } from 'react-native';
+import { Input, Button, Text } from 'react-native-elements';
 
 // import { AuthContext } from '../navigation/AuthProvider';
 
@@ -53,11 +53,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-  },
-  navButtonText: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#2e64e5',
-    paddingTop: 20,
   },
 });
