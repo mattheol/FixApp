@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import FormButton from '../components/FormButton';
-import FormInput from '../components/FormInput';
+import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { Input, Button, Text, Icon } from 'react-native-elements';
+
 // import { AuthContext } from '../navigation/AuthProvider';
 
 const LoginScreen = ({ navigation }) => {
@@ -12,41 +12,35 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.text}>Logowanie</Text>
-
-      <FormInput
-        labelValue={email}
+      <Text h4>Logowanie</Text>
+      <Input
+        containerStyle={{ paddingTop: 20 }}
+        style={{ paddingLeft: 10 }}
+        leftIcon={{ type: 'font-awesome', name: 'user' }}
         onChangeText={(userEmail: string) => setEmail(userEmail)}
-        placeholderText='Email'
-        iconType='user'
+        placeholder='Email'
         keyboardType='email-address'
         autoCapitalize='none'
         autoCorrect={false}
       />
-
-      <FormInput
-        labelValue={password}
+      <Input
+        style={{ paddingLeft: 10 }}
+        leftIcon={{ type: 'font-awesome', name: 'lock' }}
         onChangeText={(userPassword: string) => setPassword(userPassword)}
-        placeholderText='Hasło'
-        iconType='lock'
+        placeholder='Hasło'
         secureTextEntry={true}
       />
-
-      <FormButton
-        buttonTitle='Zaloguj się'
+      <Button
+        containerStyle={{ width: '100%', padding: 10 }}
+        title='Zaloguj się'
         // onPress={() => login(email, password)}
       />
-
-      {/* <TouchableOpacity style={styles.forgotButton} onPress={() => {}}>
-        <Text style={styles.navButtonText}>Forgot Password?</Text>
-      </TouchableOpacity> */}
-      <TouchableOpacity
-        style={styles.forgotButton}
-        onPress={() => navigation.navigate('Signup')}>
-        <Text style={styles.navButtonText}>
-          Nie masz konta? Zarejestruj się
-        </Text>
-      </TouchableOpacity>
+      <Button
+        containerStyle={{ width: '100%', padding: 10 }}
+        title='Zarejestruj się'
+        type='outline'
+        onPress={() => navigation.navigate('Signup')}
+      />
     </ScrollView>
   );
 };
@@ -59,27 +53,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    paddingTop: 50,
-  },
-  logo: {
-    height: 150,
-    width: 150,
-    resizeMode: 'cover',
-  },
-  text: {
-    fontSize: 28,
-    marginBottom: 10,
-    color: '#051d5f',
-  },
-  navButton: {
-    marginTop: 15,
-  },
-  forgotButton: {
-    marginVertical: 35,
   },
   navButtonText: {
     fontSize: 18,
     fontWeight: '500',
     color: '#2e64e5',
+    paddingTop: 20,
   },
 });
