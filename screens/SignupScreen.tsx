@@ -4,7 +4,6 @@ import { Input, Button, Text, ButtonGroup } from 'react-native-elements';
 
 const SignupScreen = ({ navigation }) => {
   const [step, setStep] = useState(1);
-  const [login, setLogin] = useState();
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
   const [confirmPassword, setConfirmPassword] = useState();
@@ -24,11 +23,6 @@ const SignupScreen = ({ navigation }) => {
             onChangeText={(email: string) => {}}
             keyboardType='email-address'
             autoCapitalize='none'
-            autoCorrect={false}
-          />
-          <Input
-            label='Login'
-            onChangeText={(email: string) => {}}
             autoCorrect={false}
           />
           <Input
