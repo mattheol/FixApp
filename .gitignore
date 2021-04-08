@@ -11,5 +11,7 @@ web-build/
 package-lock.json
 yarn.lock
 yarn-error.log
+#Firebase SDK
+config/keys.js
 # macOS
 .DS_Store
