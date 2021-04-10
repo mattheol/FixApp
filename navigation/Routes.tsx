@@ -30,9 +30,9 @@ const Routes = () => {
   if (initializing) return null;
   return (
     <NavigationContainer>
-      {!user || !type ? (
+      {!user || type === undefined ? (
         <AuthStack />
-      ) : type == 1 ? (
+      ) : type === 0 ? (
         <AppStackClient />
       ) : (
         <AppStackContractor />
