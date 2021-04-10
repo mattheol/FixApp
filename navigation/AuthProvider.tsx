@@ -2,6 +2,7 @@ import firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
 import React, { createContext, useState } from 'react';
+import { Alert } from 'react-native';
 
 export const AuthContext = createContext({} as any);
 
@@ -19,6 +20,7 @@ export const AuthProvider = ({ children }) => {
           try {
             await firebase.auth().signInWithEmailAndPassword(email, password);
           } catch (e) {
+            Alert.alert('', 'Podany email lub/i hasło są niepoprawne');
             console.log(e);
           }
         },
@@ -28,14 +30,14 @@ export const AuthProvider = ({ children }) => {
               .auth()
               .createUserWithEmailAndPassword(email, password);
             const currentUser = firebase.auth().currentUser;
-
-            firebase.firestore().doc(currentUser!.uid).set({
+            firebase.firestore().collection('users').doc(currentUser!.uid).set({
               firstName,
               lastName,
               phone,
               type,
             });
           } catch (e) {
+            Alert.alert('', 'Błąd podczas rejestracji');
             console.log(e);
           }
         },
