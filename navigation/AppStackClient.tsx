@@ -8,7 +8,11 @@ const Stack = createStackNavigator();
 const AppStackClient = () => {
   return (
     <Stack.Navigator>
-      <Stack.Screen name='Home' component={HomeScreenClient} />
+      <Stack.Screen
+        name='Home'
+        component={HomeScreenClient}
+        options={{ header: () => null }}
+      />
     </Stack.Navigator>
   );
 };
