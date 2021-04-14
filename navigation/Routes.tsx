@@ -3,8 +3,8 @@ import firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
 import React, { useContext, useEffect, useState } from 'react';
-import AppStackClient from './AppStackClient';
-import AppStackContractor from './AppStackContractor';
+import AppTabsClient from './AppTabsClient';
+import AppTabsContractor from './AppTabsContractor';
 import { AuthContext } from './AuthProvider';
 import AuthStack from './AuthStack';
 
@@ -33,9 +33,9 @@ const Routes = () => {
       {!user || type === undefined ? (
         <AuthStack />
       ) : type === 0 ? (
-        <AppStackClient />
+        <AppTabsClient />
       ) : (
-        <AppStackContractor />
+        <AppTabsContractor />
       )}
     </NavigationContainer>
   );
