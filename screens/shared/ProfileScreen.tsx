@@ -6,6 +6,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { Button, Input, Text } from 'react-native-elements';
 import * as Yup from 'yup';
 import { AuthContext } from '../../navigation/AuthProvider';
+import { ProgressBar, Colors } from 'react-native-paper';
 
 const userInfoSchema = Yup.object().shape({
   firstName: Yup.string().required('Pole wymagane').min(3, 'Minimum 3 znaki'),
@@ -17,6 +18,7 @@ const ProfileScreen = ({ navigation }) => {
   const { user } = useContext(AuthContext);
   const [userData, setUserData] = useState(null as any);
   const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const fetchUserData = async () => {
     const userInfo = (
@@ -26,12 +28,14 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   useEffect(() => {
+    setLoading(true);
     fetchUserData();
+    setLoading(false);
   }, []);
-
   if (!userData) {
-    return null;
-  } else if (!editMode) {
+    return <ProgressBar indeterminate color={Colors.blue500} />;
+  }
+  if (!editMode) {
     return (
       <ScrollView contentContainerStyle={styles.container}>
         <Text h4>Twój Profil</Text>
@@ -50,8 +54,7 @@ const ProfileScreen = ({ navigation }) => {
           disabledInputStyle={{ opacity: 1 }}
           label='Numer telefonu'
           keyboardType='numeric'
-          maxLength={9}
-          value={userData.phone ?? 'Brak Numeru'}
+          value={userData.phone || 'Brak'}
           autoCorrect={false}
         />
         <Button
@@ -67,81 +70,86 @@ const ProfileScreen = ({ navigation }) => {
     );
   } else {
     return (
-      <Formik
-        initialValues={{
-          firstName: (userData.firstName as string) || '',
-          lastName: (userData.lastName as string) || '',
-          phone: (userData.phone as string) || '',
-        }}
-        validationSchema={userInfoSchema}
-        onSubmit={async (values) => {
-          await firebase
-            .firestore()
-            .collection('users')
-            .doc(user.uid)
-            .update({
-              ...values,
-            });
-          await fetchUserData();
-          setEditMode(false);
-        }}>
-        {(props) => (
-          <ScrollView contentContainerStyle={styles.container}>
-            <Text h4>Edycja Profilu</Text>
-            <Input
-              containerStyle={{ paddingTop: 20 }}
-              label='Imię'
-              value={props.values.firstName}
-              onChangeText={props.handleChange('firstName')}
-              errorMessage={
-                props.touched.firstName && props.errors.firstName
-                  ? props.errors.firstName
-                  : undefined
-              }
-              autoCorrect={false}
-            />
-            <Input
-              label='Nazwisko'
-              value={props.values.lastName}
-              onChangeText={props.handleChange('lastName')}
-              errorMessage={
-                props.touched.lastName && props.errors.lastName
-                  ? props.errors.lastName
-                  : undefined
-              }
-              autoCorrect={false}
-            />
-            <Input
-              label='Numer telefonu'
-              keyboardType='numeric'
-              maxLength={9}
-              value={props.values.phone}
-              onChangeText={props.handleChange('phone')}
-              errorMessage={
-                props.touched.phone && props.errors.phone
-                  ? props.errors.phone
-                  : undefined
-              }
-              autoCorrect={false}
-            />
-            <View style={{ flexDirection: 'row' }}>
-              <Button
-                containerStyle={{ padding: 10, flex: 1 }}
-                type='outline'
-                title='Anuluj'
-                onPress={() => {
-                  setEditMode(false);
-                }}
+      <>
+        {loading ? <ProgressBar indeterminate color={Colors.blue500} /> : null}
+        <Formik
+          initialValues={{
+            firstName: (userData.firstName as string) || '',
+            lastName: (userData.lastName as string) || '',
+            phone: (userData.phone as string) || '',
+          }}
+          validationSchema={userInfoSchema}
+          onSubmit={async (values) => {
+            setLoading(true);
+            await firebase
+              .firestore()
+              .collection('users')
+              .doc(user.uid)
+              .update({
+                ...values,
+              });
+            await fetchUserData();
+            setLoading(false);
+            setEditMode(false);
+          }}>
+          {(props) => (
+            <ScrollView contentContainerStyle={styles.container}>
+              <Text h4>Edycja Profilu</Text>
+              <Input
+                containerStyle={{ paddingTop: 20 }}
+                label='Imię'
+                value={props.values.firstName}
+                onChangeText={props.handleChange('firstName')}
+                errorMessage={
+                  props.touched.firstName && props.errors.firstName
+                    ? props.errors.firstName
+                    : undefined
+                }
+                autoCorrect={false}
               />
-              <Button
-                containerStyle={{ padding: 10, flex: 1 }}
-                title='Zapisz zmiany'
-                onPress={() => props.handleSubmit()}
+              <Input
+                label='Nazwisko'
+                value={props.values.lastName}
+                onChangeText={props.handleChange('lastName')}
+                errorMessage={
+                  props.touched.lastName && props.errors.lastName
+                    ? props.errors.lastName
+                    : undefined
+                }
+                autoCorrect={false}
               />
-            </View>
-          </ScrollView>
-        )}
-      </Formik>
+              <Input
+                label='Numer telefonu'
+                keyboardType='numeric'
+                maxLength={9}
+                value={props.values.phone}
+                onChangeText={props.handleChange('phone')}
+                errorMessage={
+                  props.touched.phone && props.errors.phone
+                    ? props.errors.phone
+                    : undefined
+                }
+                autoCorrect={false}
+              />
+              <View style={{ flexDirection: 'row' }}>
+                <Button
+                  containerStyle={{ padding: 10, flex: 1 }}
+                  type='outline'
+                  title='Anuluj'
+                  onPress={() => {
+                    setEditMode(false);
+                  }}
+                />
+                <Button
+                  containerStyle={{ padding: 10, flex: 1 }}
+                  title='Zapisz zmiany'
+                  onPress={() => props.handleSubmit()}
+                />
+              </View>
+            </ScrollView>
+          )}
+        </Formik>
+      </>
     );
   }
 };

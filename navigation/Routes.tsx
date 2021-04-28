@@ -7,6 +7,7 @@ import AppTabsClient from './AppTabsClient';
 import AppTabsContractor from './AppTabsContractor';
 import { AuthContext } from './AuthProvider';
 import AuthStack from './AuthStack';
+import { ProgressBar, Colors } from 'react-native-paper';
 
 const Routes = () => {
   const { user, setUser, type, setType } = useContext(AuthContext);
@@ -27,7 +28,7 @@ const Routes = () => {
     const subscriber = firebase.auth().onAuthStateChanged(onAuthStateChanged);
     return subscriber;
   }, []);
-  if (initializing) return null;
+  if (initializing) return <ProgressBar indeterminate color={Colors.blue500} />;
   return (
     <NavigationContainer>
       {!user || type === undefined ? (

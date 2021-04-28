@@ -1,9 +1,10 @@
+import { Formik } from 'formik';
 import React, { useContext, useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
-import { Input, Button, Text, ButtonGroup } from 'react-native-elements';
-import { AuthContext } from '../navigation/AuthProvider';
-import { Formik } from 'formik';
+import { Button, ButtonGroup, Input, Text } from 'react-native-elements';
+import { Colors, ProgressBar } from 'react-native-paper';
 import * as Yup from 'yup';
+import { AuthContext } from '../navigation/AuthProvider';
 
 const registerSchemaCredentials = Yup.object().shape({
   email: Yup.string().email('Niepoprawny email').required('Pole wymagane'),
@@ -27,6 +28,7 @@ const SignupScreen = ({ navigation }) => {
   const [step, setStep] = useState(1);
   const [type, setType] = useState(0);
   const [credentials, setCredentials] = useState({ email: '', password: '' });
+  const [loading, setLoading] = useState(false);
 
   const buttons = ['Klient', 'Wykonawca'];
   const { register } = useContext(AuthContext);
@@ -97,76 +99,83 @@ const SignupScreen = ({ navigation }) => {
       )}
     </Formik>
   ) : (
-    <Formik
-      key='2'
-      initialValues={{
-        firstName: '',
-        lastName: '',
-        phone: '',
-      }}
-      validationSchema={registerSchemaExtra}
-      onSubmit={(values) => {
-        register(
-          credentials.email,
-          credentials.password,
-          values.firstName,
-          values.lastName,
-          values.phone,
-          type
-        );
-      }}>
-      {(props) => (
-        <ScrollView contentContainerStyle={styles.container}>
-          <Text style={{ paddingTop: 20, fontSize: 18 }}>Typ użytkownika</Text>
-          <ButtonGroup
-            onPress={(selectedIndex: number) => setType(selectedIndex)}
-            selectedIndex={type}
-            buttons={buttons}
-          />
-          <Input
-            containerStyle={{ paddingTop: 20 }}
-            label='Imię'
-            value={props.values.firstName}
-            onChangeText={props.handleChange('firstName')}
-            errorMessage={
-              props.touched.firstName && props.errors.firstName
-                ? props.errors.firstName
-                : undefined
-            }
-            autoCorrect={false}
-          />
-          <Input
-            label='Nazwisko'
-            value={props.values.lastName}
-            onChangeText={props.handleChange('lastName')}
-            errorMessage={
-              props.touched.lastName && props.errors.lastName
-                ? props.errors.lastName
-                : undefined
-            }
-            autoCorrect={false}
-          />
-          <Input
-            label='Numer telefonu'
-            keyboardType='numeric'
-            maxLength={9}
-            value={props.values.phone}
-            onChangeText={props.handleChange('phone')}
-            errorMessage={
-              props.touched.phone && props.errors.phone
-                ? props.errors.phone
-                : undefined
-            }
-            autoCorrect={false}
-          />
-          <Button
-            containerStyle={{ width: '100%', padding: 10 }}
-            title='Zarejestuj się'
-            onPress={() => props.handleSubmit()}
-          />
-        </ScrollView>
-      )}
-    </Formik>
+    <>
+      {loading ? <ProgressBar indeterminate color={Colors.blue500} /> : null}
+      <Formik
+        key='2'
+        initialValues={{
+          firstName: '',
+          lastName: '',
+          phone: '',
+        }}
+        validationSchema={registerSchemaExtra}
+        onSubmit={async (values) => {
+          setLoading(true);
+          await register(
+            credentials.email,
+            credentials.password,
+            values.firstName,
+            values.lastName,
+            values.phone,
+            type
+          );
+          setLoading(false);
+        }}>
+        {(props) => (
+          <ScrollView contentContainerStyle={styles.container}>
+            <Text style={{ paddingTop: 20, fontSize: 18 }}>
+              Typ użytkownika
+            </Text>
+            <ButtonGroup
+              onPress={(selectedIndex: number) => setType(selectedIndex)}
+              selectedIndex={type}
+              buttons={buttons}
+            />
+            <Input
+              containerStyle={{ paddingTop: 20 }}
+              label='Imię'
+              value={props.values.firstName}
+              onChangeText={props.handleChange('firstName')}
+              errorMessage={
+                props.touched.firstName && props.errors.firstName
+                  ? props.errors.firstName
+                  : undefined
+              }
+              autoCorrect={false}
+            />
+            <Input
+              label='Nazwisko'
+              value={props.values.lastName}
+              onChangeText={props.handleChange('lastName')}
+              errorMessage={
+                props.touched.lastName && props.errors.lastName
+                  ? props.errors.lastName
+                  : undefined
+              }
+              autoCorrect={false}
+            />
+            <Input
+              label='Numer telefonu'
+              keyboardType='numeric'
+              maxLength={9}
+              value={props.values.phone}
+              onChangeText={props.handleChange('phone')}
+              errorMessage={
+                props.touched.phone && props.errors.phone
+                  ? props.errors.phone
+                  : undefined
+              }
+              autoCorrect={false}
+            />
+            <Button
+              containerStyle={{ width: '100%', padding: 10 }}
+              title='Zarejestuj się'
+              onPress={() => props.handleSubmit()}
+            />
+          </ScrollView>
+        )}
+      </Formik>
+    </>
   );
 };
 
