@@ -2,7 +2,7 @@ import React from 'react';
 import HomeScreenClient from '../screens/client/HomeScreenClient';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import TestTab2Client from '../screens/client/TestTab2Client';
-import TestTab1Client from '../screens/client/TestTab1Client';
+import createOrderScreenClient from '../screens/client/createOrderScreenClient';
 import { FontAwesome } from '@expo/vector-icons';
 import TestTab3Client from '../screens/client/TestTab3Client';
 // import { AuthContext } from '../navigation/AuthProvider';
@@ -24,24 +24,24 @@ const AppTabsClient = () => {
         }}
       />
       <Tab.Screen
-        name='TestTab1'
-        component={TestTab1Client}
+        name='NewOrder'
+        component={createOrderScreenClient}
         options={{
-          tabBarLabel: 'TestTab1',
+          tabBarLabel: 'Nowe zlecenie',
           tabBarColor: '#694fad',
           tabBarIcon: ({ color }) => (
-            <FontAwesome name='calendar' size={25} style={{ color }} />
+            <FontAwesome name='plus' size={25} style={{ color }} />
           ),
         }}
       />
       <Tab.Screen
-        name='TestTab2'
+        name='Profile'
         component={TestTab2Client}
         options={{
-          tabBarLabel: 'TestTab1',
-          tabBarColor: '#ffd3b4',
+          tabBarLabel: 'Profile',
+          tabBarColor: '#77acf1',
           tabBarIcon: ({ color }) => (
-            <FontAwesome name='cog' size={25} style={{ color }} />
+            <FontAwesome name='user' size={25} style={{ color }} />
           ),
         }}
       />
@@ -50,7 +50,7 @@ const AppTabsClient = () => {
         component={TestTab3Client}
         options={{
           tabBarLabel: 'TestTab1',
-          tabBarColor: '#ffaaa7',
+          tabBarColor: '#72147e',
           tabBarIcon: ({ color }) => (
             <FontAwesome name='cog' size={25} style={{ color }} />
           ),
