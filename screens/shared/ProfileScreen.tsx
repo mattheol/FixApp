@@ -138,6 +138,11 @@ const ProfileScreen = ({ navigation }) => {
             rounded
             containerStyle={{ backgroundColor: 'grey', marginTop: 30 }}
             size='xlarge'
+            icon={
+              !userData?.userImg
+                ? { name: 'user', type: 'font-awesome' }
+                : undefined
+            }
             source={
               userData?.userImg
                 ? {
