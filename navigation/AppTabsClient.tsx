@@ -1,10 +1,10 @@
-import React from 'react';
-import HomeScreenClient from '../screens/client/HomeScreenClient';
-import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
-import TestTab2Client from '../screens/client/TestTab2Client';
-import createOrderScreenClient from '../screens/client/createOrderScreenClient';
 import { FontAwesome } from '@expo/vector-icons';
+import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
+import React from 'react';
+import createOrderScreenClient from '../screens/client/createOrderScreenClient';
+import HomeScreenClient from '../screens/client/HomeScreenClient';
 import TestTab3Client from '../screens/client/TestTab3Client';
+import ProfileScreen from '../screens/shared/ProfileScreen';
 // import { AuthContext } from '../navigation/AuthProvider';
 
 const Tab = createMaterialBottomTabNavigator();
@@ -36,7 +36,7 @@ const AppTabsClient = () => {
       />
       <Tab.Screen
         name='Profile'
-        component={TestTab2Client}
+        component={ProfileScreen}
         options={{
           tabBarLabel: 'Profile',
           tabBarColor: '#77acf1',

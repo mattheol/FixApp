@@ -4,7 +4,7 @@ import React from 'react';
 import HomeScreenContractor from '../screens/contractor/HomeScreenContractor';
 import TestTab1Contractor from '../screens/contractor/TestTab1Contractor';
 import TestTab3Contractor from '../screens/contractor/TestTab2Contractor';
-import TestTab2Contractor from '../screens/contractor/TestTab3Contractor';
+import ProfileScreen from '../screens/shared/ProfileScreen';
 // import { AuthContext } from '../navigation/AuthProvider';
 
 const Tab = createMaterialBottomTabNavigator();
@@ -36,12 +36,12 @@ const AppTabsContractor = () => {
       />
       <Tab.Screen
         name='TestTab2'
-        component={TestTab2Contractor}
+        component={ProfileScreen}
         options={{
-          tabBarLabel: 'TestTab1',
+          tabBarLabel: 'Profil',
           tabBarColor: '#ffd3b4',
           tabBarIcon: ({ color }) => (
-            <FontAwesome name='cog' size={25} style={{ color }} />
+            <FontAwesome name='user' size={25} style={{ color }} />
           ),
         }}
       />
