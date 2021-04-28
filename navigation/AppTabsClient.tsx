@@ -38,7 +38,7 @@ const AppTabsClient = () => {
         name='Profile'
         component={ProfileScreen}
         options={{
-          tabBarLabel: 'Profile',
+          tabBarLabel: 'Profil',
           tabBarColor: '#77acf1',
           tabBarIcon: ({ color }) => (
             <FontAwesome name='user' size={25} style={{ color }} />
