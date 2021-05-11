@@ -1,7 +1,7 @@
 import { FontAwesome } from '@expo/vector-icons';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import React from 'react';
-import HomeScreenContractor from '../screens/contractor/HomeScreenContractor';
+import HomeStackContractor from '../screens/contractor/HomeStackContractor';
 import TestTab1Contractor from '../screens/contractor/TestTab1Contractor';
 import TestTab3Contractor from '../screens/contractor/TestTab2Contractor';
 import ProfileScreen from '../screens/shared/ProfileScreen';
@@ -14,12 +14,12 @@ const AppTabsContractor = () => {
     <Tab.Navigator initialRouteName='HomeScreenClient' activeColor='#fff'>
       <Tab.Screen
         name='Home'
-        component={HomeScreenContractor}
+        component={HomeStackContractor}
         options={{
-          tabBarLabel: 'Home',
+          tabBarLabel: 'Szukaj',
           tabBarColor: '#009387',
           tabBarIcon: ({ color }) => (
-            <FontAwesome name='home' size={25} style={{ color }} />
+            <FontAwesome name='search' size={25} style={{ color }} />
           ),
         }}
       />

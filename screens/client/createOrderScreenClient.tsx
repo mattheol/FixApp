@@ -8,6 +8,7 @@ import { AuthContext } from '../../navigation/AuthProvider';
 import RNPickerSelect from 'react-native-picker-select';
 import { FontAwesome } from '@expo/vector-icons';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { categories, subcategories } from '../../models';
 
 const orderSchema = Yup.object().shape({
   description: Yup.string().required('Pole wymagane').max(200),
@@ -22,21 +23,7 @@ const createOrderScreenClient = ({ navigation }) => {
   const { user, logout } = useContext(AuthContext);
   // const [category, setCategory] = useState(null);
   // const [subcategory, setSubcategory] = useState(null);
-  const categories = [
-    { label: 'Elektryk', value: 1, key: 1 },
-    { label: 'Hydraulik', value: 2, key: 2 },
-    { label: 'Malarz', value: 3, key: 3 },
-  ];
-  const subcategories = [
-    { label: 'Instalacje elektryczne', value: 1, category: 1, key: 1 },
-    { label: 'Pogotowie elektryczne', value: 2, category: 1, key: 2 },
-    { label: 'Pomiary elektryczne', value: 3, category: 1, key: 3 },
-    { label: 'Instalacja wodna', value: 3, category: 2, key: 4 },
-    { label: 'Pogotowie hydrauliczne', value: 4, category: 2, key: 5 },
-    { label: 'Montaż kabiny prysznicowej', value: 5, category: 2, key: 6 },
-    { label: 'Malowanie ścian', value: 6, category: 3, key: 7 },
-    { label: 'Tapetowanie', value: 7, category: 3, key: 8 },
-  ];
+
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
   const showDatePicker = () => {

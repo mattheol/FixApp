@@ -35,8 +35,7 @@ const ProfileScreen = ({ navigation }) => {
 
   useEffect(() => {
     setLoading(true);
-    fetchUserData();
-    setLoading(false);
+    fetchUserData().then(() => setLoading(false));
   }, []);
 
   const urlToBlob = async (uri) => {
