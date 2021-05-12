@@ -103,7 +103,7 @@ export default SearchOrdersScreenContractor;
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
     padding: 20,
+    flexGrow: 1,
   },
 });
