@@ -30,5 +30,6 @@ export interface User {
   firstName: string;
   lastName: string;
   phone?: string;
+  userImg?: string;
   type: 0 | 1; //0 = klient, 1 = wykonawca
 }
