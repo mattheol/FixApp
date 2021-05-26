@@ -2,7 +2,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import React from 'react';
 import HomeStackContractor from '../screens/contractor/HomeStackContractor';
-import TestTab1Contractor from '../screens/contractor/TestTab1Contractor';
+import OffersStackContractor from '../screens/contractor/OffersStackContractor';
 import TestTab3Contractor from '../screens/contractor/TestTab2Contractor';
 import ProfileScreen from '../screens/shared/ProfileScreen';
 // import { AuthContext } from '../navigation/AuthProvider';
@@ -24,10 +24,10 @@ const AppTabsContractor = () => {
         }}
       />
       <Tab.Screen
-        name='TestTab1'
-        component={TestTab1Contractor}
+        name='MyContracts'
+        component={OffersStackContractor}
         options={{
-          tabBarLabel: 'TestTab1',
+          tabBarLabel: 'Moje oferty',
           tabBarColor: '#694fad',
           tabBarIcon: ({ color }) => (
             <FontAwesome name='calendar' size={25} style={{ color }} />

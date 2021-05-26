@@ -1,28 +1,52 @@
 import firebase from 'firebase/app';
 import 'firebase/firestore';
 import React, { useContext, useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Card, Text, Button } from 'react-native-elements';
 import { Colors, ProgressBar } from 'react-native-paper';
 import { categories, Order, subcategories } from '../../models';
 import { AuthContext } from '../../navigation/AuthProvider';
-import { useFocusEffect } from '@react-navigation/native';
+import { FontAwesome } from '@expo/vector-icons';
 
-const SearchOrdersScreenContractor = ({ navigation }) => {
+const OffersScreenContractor = ({ navigation }) => {
   const { user } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState([] as Array<Order>);
   const fetchOrders = async () => {
     try {
-      const fetchedOrders = (
+      const allOrdersForOffers = (
         await firebase
           .firestore()
-          .collection('orders')
-          // .where('clientId', '!=', '5')
-          .orderBy('startTime', 'desc')
+          .collection('offers')
+          .where('contractorId', '==', user.uid)
           .get()
-      ).docs.map((doc) => ({ orderDocId: doc.id, ...(doc.data() as any) }));
-      setOrders((fetchedOrders as Array<Order>) || []);
+      ).docs.map((doc) => (doc.data() as any).orderId);
+      const fetchedOrders =
+        allOrdersForOffers.length > 0
+          ? (
+              await firebase
+                .firestore()
+                .collection('orders')
+                .where(
+                  firebase.firestore.FieldPath.documentId(),
+                  'in',
+                  allOrdersForOffers
+                )
+                .get()
+            ).docs.map((doc) => {
+              const data = doc.data() as any;
+              if (!data.contractorId) {
+                data.status = 'pending';
+              } else if (data.contractorId == user.uid) {
+                data.status = 'win';
+              } else {
+                data.status = 'lost';
+              }
+              return { orderDocId: doc.id, ...data };
+            })
+          : [];
+      setOrders(fetchedOrders);
     } catch (error) {
       console.log(error);
     }
@@ -38,7 +62,7 @@ const SearchOrdersScreenContractor = ({ navigation }) => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text h4 style={{ marginTop: 10 }}>
-        Wyszukaj zlecenie
+        Moje oferty
       </Text>
       {loading ? <ProgressBar indeterminate color={Colors.blue500} /> : null}
       {orders?.map((order, i) => {
@@ -48,8 +72,29 @@ const SearchOrdersScreenContractor = ({ navigation }) => {
         const category = categories.find(
           (cat) => cat.value == subcategory.category
         )!;
+        let icon, color, status;
+        switch (order.status) {
+          case 'win':
+            icon = 'check';
+            color = 'green';
+            status = 'Zaakceptowana';
+            break;
+          case 'lost':
+            icon = 'times';
+            color = 'red';
+            status = 'Odrzucona';
+            break;
+          case 'pending':
+            icon = 'clock-o';
+            color = '#FFA500';
+            status = 'Oczekująca';
+          default:
+            break;
+        }
         return (
-          <Card key={i} containerStyle={{ marginHorizontal: 0 }}>
+          <Card
+            key={i}
+            containerStyle={{ marginHorizontal: 0, position: 'relative' }}>
             <View
               style={{
                 marginBottom: 5,
@@ -69,12 +114,28 @@ const SearchOrdersScreenContractor = ({ navigation }) => {
                   size: 10,
                 }}
                 onPress={() =>
-                  navigation.navigate('OrderDetails', {
+                  navigation.navigate('OrderDetailsForOffer', {
                     orderId: order.orderDocId,
                   })
                 }></Button>
             </View>
-            <Text style={{ fontSize: 15 }}>{order.description}</Text>
+            <View
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}>
+              <Text>Status oferty:</Text>
+              <FontAwesome
+                name={icon}
+                size={25}
+                style={{
+                  color,
+                  marginHorizontal: 3,
+                }}
+              />
+              <Text>{status}</Text>
+            </View>
             <Card.Divider
               style={{
                 marginBottom: 8,
@@ -103,7 +164,7 @@ const SearchOrdersScreenContractor = ({ navigation }) => {
   );
 };
 
-export default SearchOrdersScreenContractor;
+export default OffersScreenContractor;
 
 const styles = StyleSheet.create({
   container: {

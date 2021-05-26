@@ -36,6 +36,13 @@ export interface Order {
   description: string;
   startTime: number;
   subcategoryId: number;
+  status?: 'win' | 'pending' | 'lost';
+}
+
+export interface Offer {
+  offerDocId?: string;
+  clientId: string;
+  contractorId: string;
 }
 
 export interface User {
