@@ -3,6 +3,7 @@ import { createMaterialBottomTabNavigator } from '@react-navigation/material-bot
 import React from 'react';
 import createOrderScreenClient from '../screens/client/createOrderScreenClient';
 import HomeScreenClient from '../screens/client/HomeScreenClient';
+import HomeStackClient from '../screens/client/HomeStackClient';
 import TestTab3Client from '../screens/client/TestTab3Client';
 import ProfileScreen from '../screens/shared/ProfileScreen';
 // import { AuthContext } from '../navigation/AuthProvider';
@@ -11,10 +12,10 @@ const Tab = createMaterialBottomTabNavigator();
 
 const AppTabsClient = () => {
   return (
-    <Tab.Navigator initialRouteName='HomeScreenClient' activeColor='#fff'>
+    <Tab.Navigator initialRouteName='Home' activeColor='#fff'>
       <Tab.Screen
         name='Home'
-        component={HomeScreenClient}
+        component={HomeStackClient}
         options={{
           tabBarLabel: 'Home',
           tabBarColor: '#009387',

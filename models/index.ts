@@ -15,6 +15,19 @@ export const categories = [
   { label: 'Malarz', value: 3, key: 3 },
 ];
 
+export const cities = [
+  { label: 'Warszawa', value: 'Warszawa' },
+  { label: 'Wrocław', value: 'Wrocław' },
+  { label: 'Katowice', value: 'Katowice' },
+  { label: 'Gdańsk', value: 'Gdańsk' },
+  { label: 'Łódź', value: 'Łódź' },
+  { label: 'Kraków', value: 'Kraków' },
+  { label: 'Poznań', value: 'Poznań' },
+  { label: 'Szczecin', value: 'Szczecin' },
+  { label: 'Bydgoszcz', value: 'Bydgoszcz' },
+  { label: 'Lublin', value: 'Lublin' },
+];
+
 export interface Order {
   orderDocId?: string;
   clientId: string;

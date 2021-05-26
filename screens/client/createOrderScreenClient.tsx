@@ -14,7 +14,7 @@ import { AuthContext } from '../../navigation/AuthProvider';
 import RNPickerSelect from 'react-native-picker-select';
 import { FontAwesome } from '@expo/vector-icons';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { categories, subcategories } from '../../models';
+import { categories, cities, subcategories } from '../../models';
 import firebase from 'firebase';
 
 const orderSchema = Yup.object().shape({
@@ -222,7 +222,7 @@ const createOrderScreenClient = ({ navigation }) => {
             />
           </TouchableOpacity>
 
-          <Input
+          {/* <Input
             style={{ paddingLeft: 10 }}
             errorMessage={
               props.touched.city && props.errors.city
@@ -232,7 +232,40 @@ const createOrderScreenClient = ({ navigation }) => {
             value={props.values.city}
             onChangeText={props.handleChange('city')}
             label='Miasto'
+          /> */}
+          <Text h5 style={styles.h5}>
+            Miasto
+          </Text>
+          <RNPickerSelect
+            style={{
+              viewContainer: {
+                paddingLeft: 10,
+              },
+              inputAndroid: {
+                fontSize: 16,
+                paddingHorizontal: 10,
+                paddingVertical: 15,
+                color: 'black',
+                paddingRight: 30, // to ensure the text is never behind the icon
+              },
+            }}
+            placeholder={{ value: null, label: 'Wybierz miasto' }}
+            onOpen={() => {
+              props.setFieldTouched('city', true);
+            }}
+            onValueChange={(value) => {
+              props.setFieldValue('city', value);
+              props.handleChange('city');
+            }}
+            value={props.values.city}
+            useNativeAndroidPickerStyle={true}
+            items={cities}
           />
+          {props.touched.city && props.errors.city ? (
+            <Text style={styles.warning}> {props.errors.city} </Text>
+          ) : (
+            <Text style={styles.warning}> </Text>
+          )}
 
           <Input
             style={{ paddingLeft: 10 }}
