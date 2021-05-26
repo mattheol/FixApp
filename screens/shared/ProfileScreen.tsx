@@ -10,6 +10,7 @@ import { Colors, ProgressBar } from 'react-native-paper';
 import * as Yup from 'yup';
 import { AuthContext } from '../../navigation/AuthProvider';
 import * as ImagePicker from 'expo-image-picker';
+import { useFocusEffect } from '@react-navigation/core';
 
 const userInfoSchema = Yup.object().shape({
   firstName: Yup.string().required('Pole wymagane').min(3, 'Minimum 3 znaki'),
@@ -33,10 +34,12 @@ const ProfileScreen = ({ navigation }) => {
     setUserData(userInfo);
   };
 
-  useEffect(() => {
-    setLoading(true);
-    fetchUserData().then(() => setLoading(false));
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      setLoading(true);
+      fetchUserData().then(() => setLoading(false));
+    }, [])
+  );
 
   const urlToBlob = async (uri) => {
     const response = await fetch(uri);
