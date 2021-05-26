@@ -1,5 +1,11 @@
 import React, { useContext, useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  ToastAndroid,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { Input, Button, Text } from 'react-native-elements';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
@@ -9,12 +15,13 @@ import RNPickerSelect from 'react-native-picker-select';
 import { FontAwesome } from '@expo/vector-icons';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { categories, subcategories } from '../../models';
+import firebase from 'firebase';
 
 const orderSchema = Yup.object().shape({
   description: Yup.string().required('Pole wymagane').max(200),
   category: Yup.number().required('Pole wymagane').nullable(),
-  subcategory: Yup.number().required('Pole wymagane').nullable(),
-  start_time: Yup.string().required('Pole wymagane'),
+  subcategoryId: Yup.number().required('Pole wymagane').nullable(),
+  startTime: Yup.string().required('Pole wymagane'),
   city: Yup.string().required('Pole wymagane'),
   address: Yup.string().required('Pole wymagane'),
 });
@@ -39,18 +46,28 @@ const createOrderScreenClient = ({ navigation }) => {
       initialValues={{
         description: undefined,
         category: null,
-        subcategory: null,
-        start_time: undefined,
+        subcategoryId: null,
+        startTime: '',
         city: undefined,
         address: undefined,
       }}
       validationSchema={orderSchema}
-      onSubmit={(values) => {
-        console.log('dodaj');
+      onSubmit={async (values, { resetForm }) => {
+        await firebase.firestore().collection('orders').doc().set({
+          address: values.address,
+          city: values.city,
+          description: values.description,
+          startTime: values.startTime,
+          subcategoryId: values.subcategoryId,
+          clientId: firebase.auth().currentUser!.uid,
+        });
+        resetForm();
+        ToastAndroid.show('Dodano nowe zlecenie', ToastAndroid.SHORT);
+        navigation.navigate('Home');
       }}>
       {(props) => (
         <ScrollView contentContainerStyle={styles.container}>
-          <Text h4>Nowe zlecenia</Text>
+          <Text h4>Nowe zlecenie</Text>
           <Text h5 style={styles.h5}>
             Kategoria
           </Text>
@@ -73,9 +90,9 @@ const createOrderScreenClient = ({ navigation }) => {
             onValueChange={(value) => {
               // setCategory(value);
               props.setFieldValue('category', value);
-              if (props.values.subcategory != null) {
+              if (props.values.subcategoryId != null) {
                 // setSubcategory(null);
-                props.setFieldValue('subcategory', null);
+                props.setFieldValue('subcategoryId', null);
               }
               props.setFieldTouched('category', true);
             }}
@@ -103,20 +120,18 @@ const createOrderScreenClient = ({ navigation }) => {
                 paddingRight: 30, // to ensure the text is never behind the icon
               },
             }}
-            placeholder={{ value: null, label: 'Wybierz kategorie' }}
+            placeholder={{ value: null, label: 'Wybierz podkategorie' }}
             onOpen={() => {
-              props.setFieldTouched('subcategory', true);
-              console.log('pomocy');
+              props.setFieldTouched('subcategoryId', true);
             }}
             onValueChange={(value) => {
               // setSubcategory(value);
-              props.setFieldValue('subcategory', value);
-              props.handleChange('subcategory');
+              props.setFieldValue('subcategoryId', value);
+              props.handleChange('subcategoryId');
               // console.log(props.touched.subcategory);
               // console.log(props.errors.subcategory);
-              console.log(props.values);
             }}
-            value={props.values.subcategory}
+            value={props.values.subcategoryId}
             useNativeAndroidPickerStyle={true}
             // value={props.values.subcategory}
             disabled={props.values.category == null}
@@ -124,8 +139,8 @@ const createOrderScreenClient = ({ navigation }) => {
               (e) => e.category == props.values.category
             )}
           />
-          {props.touched.subcategory && props.errors.subcategory ? (
-            <Text style={styles.warning}> {props.errors.subcategory} </Text>
+          {props.touched.subcategoryId && props.errors.subcategoryId ? (
+            <Text style={styles.warning}> {props.errors.subcategoryId} </Text>
           ) : (
             <Text style={styles.warning}> </Text>
           )}
@@ -173,9 +188,15 @@ const createOrderScreenClient = ({ navigation }) => {
           <DateTimePickerModal
             isVisible={isDatePickerVisible}
             mode='date'
+            minimumDate={new Date()}
             // onConfirm={handleConfirm}
+            date={
+              props.values.startTime != ''
+                ? new Date(props.values.startTime)
+                : new Date()
+            }
             onConfirm={(e) => {
-              props.values.start_time = e.toDateString() as any;
+              props.values.startTime = e.getTime() as any;
               setDatePickerVisibility(false);
             }}
             onCancel={hideDatePicker}
@@ -184,11 +205,15 @@ const createOrderScreenClient = ({ navigation }) => {
             <Input
               style={{ paddingLeft: 10 }}
               errorMessage={
-                props.touched.start_time && props.errors.start_time
-                  ? props.errors.start_time
+                props.touched.startTime && props.errors.startTime
+                  ? props.errors.startTime
                   : undefined
               }
-              value={props.values.start_time}
+              value={
+                props.values.startTime != ''
+                  ? new Date(props.values.startTime).toDateString()
+                  : ''
+              }
               onChangeText={props.handleChange('start_time')}
               onFocus={() => console.log('press')}
               editable={false}
