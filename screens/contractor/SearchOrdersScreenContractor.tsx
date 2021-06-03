@@ -21,7 +21,9 @@ const SearchOrdersScreenContractor = ({ navigation }) => {
           // .where('clientId', '!=', '5')
           .orderBy('startTime', 'desc')
           .get()
-      ).docs.map((doc) => ({ orderDocId: doc.id, ...(doc.data() as any) }));
+      ).docs
+        .map((doc) => ({ orderDocId: doc.id, ...(doc.data() as any) }))
+        .filter((order) => !(order as Order).contractorId);
       setOrders((fetchedOrders as Array<Order>) || []);
     } catch (error) {
       console.log(error);

@@ -37,6 +37,7 @@ export interface Order {
   startTime: number;
   subcategoryId: number;
   status?: 'win' | 'pending' | 'lost';
+  contractorId?: string;
 }
 
 export interface Offer {
@@ -52,4 +53,12 @@ export interface User {
   phone?: string;
   userImg?: string;
   type: 0 | 1; //0 = klient, 1 = wykonawca
+}
+
+export interface Review {
+  reviewDocId?: string;
+  reviewerId: string;
+  reviewedId: string;
+  description: string;
+  rating: number;
 }

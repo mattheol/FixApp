@@ -5,12 +5,20 @@ import 'firebase/storage';
 import { Formik } from 'formik';
 import React, { useContext, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { Button, Avatar, Input, Text } from 'react-native-elements';
+import {
+  Button,
+  Avatar,
+  Input,
+  Text,
+  Rating,
+  Card,
+} from 'react-native-elements';
 import { Colors, ProgressBar } from 'react-native-paper';
 import * as Yup from 'yup';
 import { AuthContext } from '../../navigation/AuthProvider';
 import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect } from '@react-navigation/core';
+import { Review, User } from '../../models';
 
 const userInfoSchema = Yup.object().shape({
   firstName: Yup.string().required('Pole wymagane').min(3, 'Minimum 3 znaki'),
@@ -20,17 +28,34 @@ const userInfoSchema = Yup.object().shape({
 
 const ProfileScreen = ({ navigation }) => {
   const { user } = useContext(AuthContext);
-  const [userData, setUserData] = useState(null as any);
+  const [userData, setUserData] = useState<User | undefined>(undefined);
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [image, setImage] = useState('');
   const [uploading, setUploading] = useState(false);
   const [transferred, setTransferred] = useState(0);
+  const [reviews, setReviews] = useState<Array<Review>>([]);
 
   const fetchUserData = async () => {
     const userInfo = (
       await firebase.firestore().collection('users').doc(user.uid).get()
-    ).data()!;
+    ).data()! as User;
+
+    if (userInfo.type === 1) {
+      const ratingInfo = (
+        await firebase
+          .firestore()
+          .collection('reviews')
+          .where('reviewedId', '==', user.uid)
+          .get()
+      ).docs.map((doc) => ({
+        ...(doc.data() as any),
+        reviewDocId: doc.id,
+      })) as Array<Review>;
+      setReviews(ratingInfo);
+    } else {
+      setReviews([]);
+    }
     setUserData(userInfo);
   };
 
@@ -93,24 +118,6 @@ const ProfileScreen = ({ navigation }) => {
     }
   };
 
-  // const onImageChange = (e) => {
-  //   const reader = new FileReader();
-  //   let file = e.target.files[0]; // get the supplied file
-  //   // if there is a file, set image to that file
-  //   if (file) {
-  //     reader.onload = () => {
-  //       if (reader.readyState === 2) {
-  //         console.log(file);
-  //         setImage(file);
-  //       }
-  //     };
-  //     reader.readAsDataURL(e.target.files[0]);
-  //   // if there is no file, set image back to null
-  //   } else {
-  //     setImage(null);
-  //   }
-  // };
-
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -123,13 +130,13 @@ const ProfileScreen = ({ navigation }) => {
       setImage(result.uri);
     }
   };
-
   if (!userData) {
     return <ProgressBar indeterminate color={Colors.blue500} />;
   }
   if (!editMode) {
     return (
       <ScrollView contentContainerStyle={styles.container}>
+        {loading ? <ProgressBar indeterminate color={Colors.blue500} /> : null}
         <View
           style={{
             display: 'flex',
@@ -154,7 +161,7 @@ const ProfileScreen = ({ navigation }) => {
             }
           />
           <Text style={{ fontSize: 25, marginTop: 10 }}>
-            {userData.firstName + ' ' + userData.lastName}
+            {userData?.firstName + ' ' + userData?.lastName}
           </Text>
           <View
             style={{
@@ -165,7 +172,7 @@ const ProfileScreen = ({ navigation }) => {
             }}>
             <FontAwesome name='phone' size={20} />
             <Text style={{ fontSize: 20, marginLeft: 5 }}>
-              {userData.phone || 'Brak'}
+              {userData?.phone || 'Brak'}
             </Text>
           </View>
         </View>
@@ -178,6 +185,72 @@ const ProfileScreen = ({ navigation }) => {
             setEditMode(true);
           }}
         />
+        {reviews.length ? (
+          <>
+            <View
+              style={{
+                marginTop: 15,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+              }}>
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}>
+                <Text style={{ fontSize: 15 }}>Ocena: </Text>
+                <Text style={{ fontSize: 20 }}>
+                  {reviews.reduce((a, b) => +a + +b.rating, 0) / reviews.length}
+                </Text>
+                <Text style={{ fontSize: 15 }}>/5</Text>
+              </View>
+              <Rating
+                imageSize={40}
+                readonly
+                startingValue={
+                  reviews.reduce((a, b) => +a + +b.rating, 0) / reviews.length
+                }
+                tintColor='#F0F0F0'
+              />
+            </View>
+            {reviews.map((review, i) => (
+              <Card
+                key={i}
+                containerStyle={{
+                  marginHorizontal: 0,
+                  backgroundColor: '#ccf2ff',
+                  paddingVertical: 8,
+                }}>
+                <View
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                  }}>
+                  <View
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                    <Rating
+                      imageSize={20}
+                      readonly
+                      startingValue={review.rating}
+                      tintColor='#ccf2ff'
+                    />
+                    <Text style={{ fontSize: 18 }}>{review.rating}</Text>
+                    <Text style={{ fontSize: 15 }}>/5</Text>
+                  </View>
+                  <Text>{review.description}</Text>
+                </View>
+              </Card>
+            ))}
+          </>
+        ) : null}
       </ScrollView>
     );
   } else {
@@ -203,7 +276,7 @@ const ProfileScreen = ({ navigation }) => {
             source={
               image || userData?.userImg
                 ? {
-                    uri: image || userData.userImg,
+                    uri: image || userData?.userImg,
                   }
                 : undefined
             }
@@ -224,14 +297,14 @@ const ProfileScreen = ({ navigation }) => {
 
         <Formik
           initialValues={{
-            firstName: (userData.firstName as string) || '',
-            lastName: (userData.lastName as string) || '',
-            phone: (userData.phone as string) || '',
+            firstName: userData?.firstName || '',
+            lastName: userData?.lastName || '',
+            phone: (userData?.phone as string) || '',
           }}
           validationSchema={userInfoSchema}
           onSubmit={async (values) => {
             setLoading(true);
-            let imgUrl = userData.userImg;
+            let imgUrl = userData?.userImg;
             if (image) {
               imgUrl = await uploadImage();
             }
