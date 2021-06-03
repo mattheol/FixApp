@@ -2,11 +2,9 @@ import { FontAwesome } from '@expo/vector-icons';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import React from 'react';
 import createOrderScreenClient from '../screens/client/createOrderScreenClient';
-import HomeScreenClient from '../screens/client/HomeScreenClient';
 import HomeStackClient from '../screens/client/HomeStackClient';
-import TestTab3Client from '../screens/client/TestTab3Client';
+import LogoutScreen from '../screens/shared/LogoutScreen';
 import ProfileScreen from '../screens/shared/ProfileScreen';
-// import { AuthContext } from '../navigation/AuthProvider';
 
 const Tab = createMaterialBottomTabNavigator();
 
@@ -17,7 +15,7 @@ const AppTabsClient = () => {
         name='Home'
         component={HomeStackClient}
         options={{
-          tabBarLabel: 'Home',
+          tabBarLabel: 'Moje zlecenia',
           tabBarColor: '#009387',
           tabBarIcon: ({ color }) => (
             <FontAwesome name='home' size={25} style={{ color }} />
@@ -40,20 +38,20 @@ const AppTabsClient = () => {
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Profil',
-          tabBarColor: '#77acf1',
+          tabBarColor: '#80b3ff',
           tabBarIcon: ({ color }) => (
             <FontAwesome name='user' size={25} style={{ color }} />
           ),
         }}
       />
       <Tab.Screen
-        name='TestTab3'
-        component={TestTab3Client}
+        name='Logout'
+        component={LogoutScreen}
         options={{
-          tabBarLabel: 'TestTab1',
-          tabBarColor: '#72147e',
+          tabBarLabel: 'Wyloguj się',
+          tabBarColor: '#fc7575',
           tabBarIcon: ({ color }) => (
-            <FontAwesome name='cog' size={25} style={{ color }} />
+            <FontAwesome name='sign-out' size={25} style={{ color }} />
           ),
         }}
       />

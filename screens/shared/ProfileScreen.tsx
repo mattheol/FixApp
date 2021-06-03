@@ -220,7 +220,7 @@ const ProfileScreen = ({ navigation }) => {
                 key={i}
                 containerStyle={{
                   marginHorizontal: 0,
-                  backgroundColor: '#ccf2ff',
+                  backgroundColor: '#e6f0ff',
                   paddingVertical: 8,
                 }}>
                 <View
@@ -240,9 +240,11 @@ const ProfileScreen = ({ navigation }) => {
                       imageSize={20}
                       readonly
                       startingValue={review.rating}
-                      tintColor='#ccf2ff'
+                      tintColor='#e6f0ff'
                     />
-                    <Text style={{ fontSize: 18 }}>{review.rating}</Text>
+                    <Text style={{ fontSize: 18, marginLeft: 5 }}>
+                      {review.rating}
+                    </Text>
                     <Text style={{ fontSize: 15 }}>/5</Text>
                   </View>
                   <Text>{review.description}</Text>

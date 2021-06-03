@@ -3,9 +3,8 @@ import { createMaterialBottomTabNavigator } from '@react-navigation/material-bot
 import React from 'react';
 import HomeStackContractor from '../screens/contractor/HomeStackContractor';
 import OffersStackContractor from '../screens/contractor/OffersStackContractor';
-import TestTab3Contractor from '../screens/contractor/TestTab2Contractor';
+import LogoutScreen from '../screens/shared/LogoutScreen';
 import ProfileScreen from '../screens/shared/ProfileScreen';
-// import { AuthContext } from '../navigation/AuthProvider';
 
 const Tab = createMaterialBottomTabNavigator();
 
@@ -35,24 +34,24 @@ const AppTabsContractor = () => {
         }}
       />
       <Tab.Screen
-        name='TestTab2'
+        name='Profile'
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Profil',
-          tabBarColor: '#ffd3b4',
+          tabBarColor: '#80b3ff',
           tabBarIcon: ({ color }) => (
             <FontAwesome name='user' size={25} style={{ color }} />
           ),
         }}
       />
       <Tab.Screen
-        name='TestTab3'
-        component={TestTab3Contractor}
+        name='Logout'
+        component={LogoutScreen}
         options={{
-          tabBarLabel: 'TestTab1',
-          tabBarColor: '#ffaaa7',
+          tabBarLabel: 'Wyloguj się',
+          tabBarColor: '#fc7575',
           tabBarIcon: ({ color }) => (
-            <FontAwesome name='cog' size={25} style={{ color }} />
+            <FontAwesome name='sign-out' size={25} style={{ color }} />
           ),
         }}
       />
