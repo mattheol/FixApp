@@ -3,14 +3,30 @@ import firebase from 'firebase/app';
 import 'firebase/firestore';
 import React, { useContext, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Avatar, Divider, Text, Input, Button } from 'react-native-elements';
+import {
+  Avatar,
+  Divider,
+  Text,
+  Input,
+  Button,
+  ButtonGroup,
+  Card,
+} from 'react-native-elements';
 import { Colors, ProgressBar } from 'react-native-paper';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { categories, Order, subcategories, User, cities } from '../../models';
+import {
+  categories,
+  Order,
+  subcategories,
+  User,
+  cities,
+  Offer,
+} from '../../models';
 import { AuthContext } from '../../navigation/AuthProvider';
 import RNPickerSelect from 'react-native-picker-select';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
+import { useFocusEffect } from '@react-navigation/core';
 
 const orderSchema = Yup.object().shape({
   description: Yup.string().required('Pole wymagane').max(200),
@@ -18,6 +34,8 @@ const orderSchema = Yup.object().shape({
   city: Yup.string().required('Pole wymagane'),
   address: Yup.string().required('Pole wymagane'),
 });
+
+const tabs = ['Oferty', 'Szczegóły'];
 
 const OrderDetailsScreenClient = ({
   navigation,
@@ -34,34 +52,67 @@ const OrderDetailsScreenClient = ({
   };
 
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [tab, setTab] = useState(0);
   const { user } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [editingOrder, setEditingOrder] = useState(false);
   const [order, setOrder] = useState<Order | undefined>(undefined);
-  const [client, setClient] = useState<User | undefined>(undefined);
+  const [contractors, setContractors] = useState<Array<User>>([]);
   const fetchOrderAndClient = async () => {
     try {
-      const fetchedOrder = (
-        await firebase.firestore().collection('orders').doc(orderId).get()
-      ).data()!;
-      setOrder(fetchedOrder as Order);
-      const fetchedClient = (
-        await firebase
-          .firestore()
-          .collection('users')
-          .doc(fetchedOrder.clientId)
-          .get()
-      ).data()!;
-      setClient(fetchedClient as User);
+      const fetches = await Promise.all([
+        new Promise<Order>(async (resolve) => {
+          const data = (
+            await firebase.firestore().collection('orders').doc(orderId).get()
+          ).data()! as Order;
+          resolve(data);
+        }),
+        new Promise<Array<Offer>>(async (resolve) => {
+          const data = (
+            await firebase
+              .firestore()
+              .collection('offers')
+              .where('orderId', '==', orderId)
+              .get()
+          ).docs.map((doc) => ({
+            ...(doc.data() as any),
+            offerDocId: doc.id,
+          })) as Array<Offer>;
+          resolve(data);
+        }),
+      ]);
+      setOrder(fetches[0]);
+      const fetchedContractors = await Promise.all(
+        fetches[1].map(
+          (offer) =>
+            new Promise<User>(async (resolve) => {
+              const data = {
+                ...(
+                  await firebase
+                    .firestore()
+                    .collection('users')
+                    .doc(offer.contractorId)
+                    .get()
+                ).data()!,
+                userDocId: offer.contractorId,
+              } as User;
+              resolve(data);
+            })
+        )
+      );
+      setContractors(fetchedContractors);
     } catch (error) {
       console.log(error);
     }
   };
 
-  useEffect(() => {
-    setLoading(true);
-    fetchOrderAndClient().then(() => setLoading(false));
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      setLoading(true);
+      fetchOrderAndClient().then(() => setLoading(false));
+    }, [])
+  );
+
   const subcategory = order
     ? subcategories.find((subCat) => subCat.value == order.subcategoryId)!
     : undefined;
@@ -71,11 +122,84 @@ const OrderDetailsScreenClient = ({
       : undefined;
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text h4 style={{ marginTop: 10 }}>
-        Szczegóły zlecenia
-      </Text>
+      <ButtonGroup
+        onPress={(selectedIndex: number) => setTab(selectedIndex)}
+        selectedIndex={tab}
+        buttons={tabs}
+      />
       {loading ? <ProgressBar indeterminate color={Colors.blue500} /> : null}
-      {order && client ? (
+
+      {tab === 0 ? (
+        <View>
+          {contractors.length || loading ? (
+            contractors.map((contractor, i) => (
+              <Card
+                key={i}
+                containerStyle={{
+                  marginHorizontal: 0,
+                  paddingVertical: 8,
+                }}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                    }}>
+                    <Avatar
+                      rounded
+                      containerStyle={{
+                        backgroundColor: 'grey',
+                        marginRight: 10,
+                      }}
+                      size='medium'
+                      icon={
+                        !contractor?.userImg
+                          ? { name: 'user', type: 'font-awesome' }
+                          : undefined
+                      }
+                      source={
+                        contractor?.userImg
+                          ? {
+                              uri: contractor.userImg,
+                            }
+                          : undefined
+                      }
+                    />
+                    <Text style={{ fontSize: 15 }}>
+                      {contractor.firstName + ' ' + contractor.lastName}
+                    </Text>
+                  </View>
+
+                  <Button
+                    titleStyle={{ fontSize: 14 }}
+                    title='Pokaż profil'
+                    iconRight={true}
+                    icon={{
+                      type: 'font-awesome',
+                      name: 'chevron-right',
+                      color: 'white',
+                      size: 15,
+                    }}
+                    onPress={() =>
+                      navigation.navigate('ContractorProfile', {
+                        contractorId: contractor.userDocId,
+                      })
+                    }></Button>
+                </View>
+              </Card>
+            ))
+          ) : (
+            <Text style={{ textAlign: 'center', fontSize: 20, marginTop: 10 }}>
+              Brak ofert
+            </Text>
+          )}
+        </View>
+      ) : order ? (
         <Formik
           initialValues={{
             description: order.description,
@@ -240,18 +364,13 @@ const OrderDetailsScreenClient = ({
               />
               <View
                 style={{
-                  display: 'flex',
                   flexDirection: 'row',
-                  width: '100%',
-                  alignContent: 'space-between',
-                  justifyContent: 'space-between',
                 }}>
                 <Button
-                  raised
                   type='solid'
                   containerStyle={
                     !editingOrder
-                      ? { marginTop: 20, width: '100%' }
+                      ? { display: 'flex', padding: 10, flex: 1 }
                       : { display: 'none' }
                   }
                   title='Edytuj zlecenie'
@@ -260,29 +379,13 @@ const OrderDetailsScreenClient = ({
                     console.log('uruchom edycje');
                   }}></Button>
                 <Button
-                  raised
-                  type='solid'
+                  type='outline'
                   containerStyle={
                     editingOrder
                       ? {
-                          marginTop: 20,
-                          width: '48%',
-                        }
-                      : { display: 'none' }
-                  }
-                  title='Zapisz'
-                  onPress={() => {
-                    console.log('zapisz');
-                    props.handleSubmit();
-                  }}></Button>
-                <Button
-                  raised
-                  type='solid'
-                  containerStyle={
-                    editingOrder
-                      ? {
-                          marginTop: 20,
-                          width: '48%',
+                          display: 'flex',
+                          padding: 10,
+                          flex: 1,
                         }
                       : { display: 'none' }
                   }
@@ -291,6 +394,21 @@ const OrderDetailsScreenClient = ({
                     console.log('anuluj edycje');
                     setEditingOrder(!editingOrder);
                     props.resetForm();
+                  }}></Button>
+                <Button
+                  containerStyle={
+                    editingOrder
+                      ? {
+                          display: 'flex',
+                          padding: 10,
+                          flex: 1,
+                        }
+                      : { display: 'none' }
+                  }
+                  title='Zapisz'
+                  onPress={() => {
+                    console.log('zapisz');
+                    props.handleSubmit();
                   }}></Button>
               </View>
             </View>
@@ -305,7 +423,7 @@ export default OrderDetailsScreenClient;
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
+    flexGrow: 1,
     padding: 20,
   },
 

@@ -18,10 +18,12 @@ const ViewOrdersScreenClient = ({ navigation }) => {
         await firebase
           .firestore()
           .collection('orders')
-          .where('clientId', '==', firebase.auth().currentUser!.uid)
+          .where('clientId', '==', user.uid)
           .orderBy('startTime', 'asc')
           .get()
-      ).docs.map((doc) => ({ orderDocId: doc.id, ...(doc.data() as any) }));
+      ).docs
+        .map((doc) => ({ orderDocId: doc.id, ...(doc.data() as any) }))
+        .reverse();
       setOrders((fetchedOrders as Array<Order>) || []);
     } catch (error) {
       console.log(error);
@@ -37,7 +39,7 @@ const ViewOrdersScreenClient = ({ navigation }) => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text h4 style={{ marginTop: 10 }}>
-        Twoje zlecenia
+        Moje zlecenia
       </Text>
       {loading ? <ProgressBar indeterminate color={Colors.blue500} /> : null}
       {orders?.map((order, i) => {
