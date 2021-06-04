@@ -1,32 +1,40 @@
-import { FontAwesome } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/core';
 import firebase from 'firebase/app';
 import 'firebase/firestore';
-import React, { useContext, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Formik } from 'formik';
+import React, { useContext, useState } from 'react';
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  ToastAndroid,
+} from 'react-native';
 import {
   Avatar,
-  Divider,
-  Text,
-  Input,
   Button,
   ButtonGroup,
   Card,
+  Input,
+  Text,
 } from 'react-native-elements';
-import { Colors, ProgressBar } from 'react-native-paper';
+import { Overlay } from 'react-native-elements/dist/overlay/Overlay';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { Colors, ProgressBar } from 'react-native-paper';
+import RNPickerSelect from 'react-native-picker-select';
+import * as Yup from 'yup';
+import ReviewForm from '../../components/ReviewForm';
 import {
   categories,
-  Order,
-  subcategories,
-  User,
   cities,
   Offer,
+  Order,
+  Review,
+  subcategories,
+  User,
 } from '../../models';
 import { AuthContext } from '../../navigation/AuthProvider';
-import RNPickerSelect from 'react-native-picker-select';
-import { Formik } from 'formik';
-import * as Yup from 'yup';
-import { useFocusEffect } from '@react-navigation/core';
 
 const orderSchema = Yup.object().shape({
   description: Yup.string().required('Pole wymagane').max(200),
@@ -58,49 +66,81 @@ const OrderDetailsScreenClient = ({
   const [editingOrder, setEditingOrder] = useState(false);
   const [order, setOrder] = useState<Order | undefined>(undefined);
   const [contractors, setContractors] = useState<Array<User>>([]);
-  const fetchOrderAndClient = async () => {
+  const [selectedContractor, setSelectedContractor] =
+    useState<User | undefined>(undefined);
+  const [review, setReview] = useState<Review | undefined>(undefined);
+  const [overlayVisibility, setOverlayVisibility] = useState(false);
+
+  const fetchOrderAndOffers = async () => {
     try {
-      const fetches = await Promise.all([
-        new Promise<Order>(async (resolve) => {
-          const data = (
-            await firebase.firestore().collection('orders').doc(orderId).get()
-          ).data()! as Order;
-          resolve(data);
-        }),
-        new Promise<Array<Offer>>(async (resolve) => {
-          const data = (
-            await firebase
-              .firestore()
-              .collection('offers')
-              .where('orderId', '==', orderId)
-              .get()
-          ).docs.map((doc) => ({
-            ...(doc.data() as any),
-            offerDocId: doc.id,
-          })) as Array<Offer>;
-          resolve(data);
-        }),
-      ]);
-      setOrder(fetches[0]);
-      const fetchedContractors = await Promise.all(
-        fetches[1].map(
-          (offer) =>
-            new Promise<User>(async (resolve) => {
-              const data = {
-                ...(
-                  await firebase
-                    .firestore()
-                    .collection('users')
-                    .doc(offer.contractorId)
-                    .get()
-                ).data()!,
-                userDocId: offer.contractorId,
-              } as User;
-              resolve(data);
-            })
-        )
-      );
-      setContractors(fetchedContractors);
+      setSelectedContractor(undefined);
+      setReview(undefined);
+      const fetchedOrder = (
+        await firebase.firestore().collection('orders').doc(orderId).get()
+      ).data()! as Order;
+      setOrder(fetchedOrder);
+      if (!fetchedOrder.contractorId) {
+        const fetchedOffers = (
+          await firebase
+            .firestore()
+            .collection('offers')
+            .where('orderId', '==', orderId)
+            .get()
+        ).docs.map((doc) => ({
+          ...(doc.data() as any),
+          offerDocId: doc.id,
+        })) as Array<Offer>;
+        const fetchedContractors = await Promise.all(
+          fetchedOffers.map(
+            (offer) =>
+              new Promise<User>(async (resolve) => {
+                const data = {
+                  ...(
+                    await firebase
+                      .firestore()
+                      .collection('users')
+                      .doc(offer.contractorId)
+                      .get()
+                  ).data()!,
+                  userDocId: offer.contractorId,
+                } as User;
+                resolve(data);
+              })
+          )
+        );
+        setContractors(fetchedContractors);
+      } else {
+        const [fetchedContractor, fetchedReview] = await Promise.all([
+          new Promise<User>(async (resolve) => {
+            resolve({
+              ...(
+                await firebase
+                  .firestore()
+                  .collection('users')
+                  .doc(fetchedOrder.contractorId)
+                  .get()
+              ).data()!,
+              userDocId: fetchedOrder.contractorId,
+            } as User);
+          }),
+          new Promise<Review | undefined>(async (resolve) => {
+            const data = (
+              await firebase
+                .firestore()
+                .collection('reviews')
+                .where('orderId', '==', orderId)
+                .where('reviewedId', '==', fetchedOrder.contractorId)
+                .get()
+            )?.docs.map((doc) => ({
+              reviewDocId: doc.id,
+              ...(doc.data() as any),
+            }))?.[0];
+            resolve(data);
+          }),
+        ]);
+        setContractors([fetchedContractor]);
+        setReview(fetchedReview);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -109,9 +149,67 @@ const OrderDetailsScreenClient = ({
   useFocusEffect(
     React.useCallback(() => {
       setLoading(true);
-      fetchOrderAndClient().then(() => setLoading(false));
+      fetchOrderAndOffers().then(() => setLoading(false));
     }, [])
   );
+
+  const chooseContractor = async () => {
+    Alert.alert(
+      // Shows up the alert without redirecting anywhere
+      'Potwierdzenie wymagane',
+      `${
+        selectedContractor!.firstName + ' ' + selectedContractor!.lastName
+      } ma zostać wykonawcą zlecenia?`,
+      [
+        {
+          text: 'Tak',
+          onPress: async () => {
+            setLoading(true);
+            await firebase
+              .firestore()
+              .collection('orders')
+              .doc(orderId)
+              .update({
+                contractorId: selectedContractor?.userDocId,
+              });
+            fetchOrderAndOffers().then(() => setLoading(false));
+          },
+        },
+        {
+          text: 'Anuluj',
+          onPress: () => {},
+        },
+      ]
+    );
+  };
+
+  const removeContractor = async () => {
+    Alert.alert(
+      // Shows up the alert without redirecting anywhere
+      'Potwierdzenie wymagane',
+      `Czy zrezygnować z usług wykonawcy?`,
+      [
+        {
+          text: 'Tak',
+          onPress: async () => {
+            setLoading(true);
+            await firebase
+              .firestore()
+              .collection('orders')
+              .doc(orderId)
+              .update({
+                contractorId: firebase.firestore.FieldValue.delete(),
+              });
+            fetchOrderAndOffers().then(() => setLoading(false));
+          },
+        },
+        {
+          text: 'Anuluj',
+          onPress: () => {},
+        },
+      ]
+    );
+  };
 
   const subcategory = order
     ? subcategories.find((subCat) => subCat.value == order.subcategoryId)!
@@ -127,14 +225,56 @@ const OrderDetailsScreenClient = ({
         selectedIndex={tab}
         buttons={tabs}
       />
-      {loading ? <ProgressBar indeterminate color={Colors.blue500} /> : null}
-
-      {tab === 0 ? (
+      <Overlay isVisible={overlayVisibility} overlayStyle={{ width: '80%' }}>
         <View>
-          {contractors.length || loading ? (
-            contractors.map((contractor, i) => (
+          {overlayVisibility ? (
+            <ReviewForm
+              review={review}
+              onFormCancel={() => {
+                setOverlayVisibility(false);
+              }}
+              onFormSubmit={async (rating, description) => {
+                setOverlayVisibility(false);
+                setLoading(true);
+                if (review) {
+                  await firebase
+                    .firestore()
+                    .collection('reviews')
+                    .doc(review.reviewDocId)
+                    .update({
+                      rating,
+                      description,
+                    });
+                  ToastAndroid.show('Zaktualizowano ocenę', ToastAndroid.SHORT);
+                  fetchOrderAndOffers().then(() => setLoading(false));
+                } else {
+                  await firebase.firestore().collection('reviews').doc().set({
+                    orderId,
+                    reviewedId: order?.contractorId,
+                    reviewerId: user.uid,
+                    rating,
+                    description,
+                  });
+                  ToastAndroid.show('Dodano ocenę', ToastAndroid.SHORT);
+                }
+                fetchOrderAndOffers().then(() => setLoading(false));
+              }}
+            />
+          ) : null}
+        </View>
+      </Overlay>
+      {loading ? (
+        <ProgressBar indeterminate color={Colors.blue500} />
+      ) : tab === 0 ? (
+        <View>
+          {contractors.length === 1 &&
+          contractors[0].userDocId === order?.contractorId ? (
+            <>
+              <Text
+                style={{ fontSize: 20, textAlign: 'center', marginTop: 10 }}>
+                Wykonawca
+              </Text>
               <Card
-                key={i}
                 containerStyle={{
                   marginHorizontal: 0,
                   paddingVertical: 8,
@@ -158,23 +298,22 @@ const OrderDetailsScreenClient = ({
                       }}
                       size='medium'
                       icon={
-                        !contractor?.userImg
+                        !contractors[0].userImg
                           ? { name: 'user', type: 'font-awesome' }
                           : undefined
                       }
                       source={
-                        contractor?.userImg
+                        contractors[0].userImg
                           ? {
-                              uri: contractor.userImg,
+                              uri: contractors?.[0].userImg,
                             }
                           : undefined
                       }
                     />
                     <Text style={{ fontSize: 15 }}>
-                      {contractor.firstName + ' ' + contractor.lastName}
+                      {contractors[0].firstName + ' ' + contractors[0].lastName}
                     </Text>
                   </View>
-
                   <Button
                     titleStyle={{ fontSize: 14 }}
                     title='Pokaż profil'
@@ -185,14 +324,119 @@ const OrderDetailsScreenClient = ({
                       color: 'white',
                       size: 15,
                     }}
-                    onPress={() =>
+                    onPress={(e) => {
+                      e.stopPropagation();
                       navigation.navigate('ContractorProfile', {
-                        contractorId: contractor.userDocId,
-                      })
-                    }></Button>
+                        contractorId: contractors[0].userDocId,
+                      });
+                    }}></Button>
                 </View>
               </Card>
-            ))
+              <Button
+                title={review ? 'Edytuj ocenę' : 'Wystaw ocenę'}
+                containerStyle={{
+                  marginTop: 20,
+                }}
+                onPress={() => setOverlayVisibility(true)}></Button>
+              <Button
+                type='outline'
+                title='Zrezygnuj z wykonawcy'
+                containerStyle={{
+                  marginTop: 20,
+                }}
+                onPress={removeContractor}></Button>
+            </>
+          ) : contractors.length ? (
+            <>
+              <Text
+                style={{ fontSize: 20, textAlign: 'center', marginTop: 10 }}>
+                Wybierz wykonawcę
+              </Text>
+              <View>
+                {contractors.map((contractor, i) => (
+                  <TouchableOpacity
+                    key={i}
+                    onPress={() => {
+                      if (contractor === selectedContractor) {
+                        setSelectedContractor(undefined);
+                      } else {
+                        setSelectedContractor(contractor);
+                      }
+                    }}>
+                    <Card
+                      containerStyle={{
+                        marginHorizontal: 0,
+                        paddingVertical: 8,
+                        backgroundColor:
+                          contractor === selectedContractor && !loading
+                            ? '#c3dbff'
+                            : 'white',
+                      }}>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}>
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                          }}>
+                          <Avatar
+                            rounded
+                            containerStyle={{
+                              backgroundColor: 'grey',
+                              marginRight: 10,
+                            }}
+                            size='medium'
+                            icon={
+                              !contractor?.userImg
+                                ? { name: 'user', type: 'font-awesome' }
+                                : undefined
+                            }
+                            source={
+                              contractor?.userImg
+                                ? {
+                                    uri: contractor.userImg,
+                                  }
+                                : undefined
+                            }
+                          />
+                          <Text style={{ fontSize: 15 }}>
+                            {contractor.firstName + ' ' + contractor.lastName}
+                          </Text>
+                        </View>
+
+                        <Button
+                          titleStyle={{ fontSize: 14 }}
+                          title='Pokaż profil'
+                          iconRight={true}
+                          icon={{
+                            type: 'font-awesome',
+                            name: 'chevron-right',
+                            color: 'white',
+                            size: 15,
+                          }}
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            navigation.navigate('ContractorProfile', {
+                              contractorId: contractor.userDocId,
+                            });
+                          }}></Button>
+                      </View>
+                    </Card>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <Button
+                title='Zastosuj'
+                disabled={!selectedContractor}
+                containerStyle={{
+                  marginTop: 20,
+                }}
+                onPress={chooseContractor}></Button>
+            </>
           ) : (
             <Text style={{ textAlign: 'center', fontSize: 20, marginTop: 10 }}>
               Brak ofert
@@ -222,7 +466,7 @@ const OrderDetailsScreenClient = ({
               });
             console.log('submicja');
             setLoading(true);
-            fetchOrderAndClient().then(() => setLoading(false));
+            fetchOrderAndOffers().then(() => setLoading(false));
             console.log('submicja2');
           }}>
           {(props) => (
@@ -441,6 +685,3 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 });
-function setDatePickerVisibility(arg0: boolean) {
-  throw new Error('Function not implemented.');
-}

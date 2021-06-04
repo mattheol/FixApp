@@ -10,7 +10,7 @@ const Tab = createMaterialBottomTabNavigator();
 
 const AppTabsContractor = () => {
   return (
-    <Tab.Navigator initialRouteName='HomeScreenClient' activeColor='#fff'>
+    <Tab.Navigator initialRouteName='Home' activeColor='#fff'>
       <Tab.Screen
         name='Home'
         component={HomeStackContractor}

@@ -61,4 +61,5 @@ export interface Review {
   reviewedId: string;
   description: string;
   rating: number;
+  orderId: string;
 }
