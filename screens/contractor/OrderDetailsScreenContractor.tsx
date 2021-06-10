@@ -70,7 +70,7 @@ const OrderDetailsScreenContractor = ({
       orderId,
     });
     ToastAndroid.show('Zgłosiłeś się do zlecenia', ToastAndroid.SHORT);
-    navigation.navigate('OffersList');
+    fetchOrderAndClient().then(() => setLoading(false));
   };
 
   const removeOfferForOrder = async () => {
@@ -81,7 +81,7 @@ const OrderDetailsScreenContractor = ({
       .doc(offer?.offerDocId)
       .delete();
     ToastAndroid.show('Wypisałeś się ze zlecenia', ToastAndroid.SHORT);
-    navigation.navigate('OffersList');
+    fetchOrderAndClient().then(() => setLoading(false));
   };
 
   const subcategory = order

@@ -107,7 +107,11 @@ const ContractorProfileScreen = ({
               }}>
               <Text style={{ fontSize: 15 }}>Ocena: </Text>
               <Text style={{ fontSize: 20 }}>
-                {reviews.reduce((a, b) => +a + +b.rating, 0) / reviews.length}
+                {
+                  +(
+                    reviews.reduce((a, b) => +a + +b.rating, 0) / reviews.length
+                  ).toFixed(2)
+                }
               </Text>
               <Text style={{ fontSize: 15 }}>/5</Text>
             </View>
